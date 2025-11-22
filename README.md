@@ -113,6 +113,8 @@ git clone https://github.com/unmeshed/unmeshed-csharp-sdk.git
 ### **2. Build the Solution**
 
 ```bash
+cd unmeshed-csharp-sdk
+
 dotnet build
 ```
 
@@ -142,6 +144,8 @@ git clone https://github.com/unmeshed/unmeshed-csharp-sdk.git
 ### **2. Build the Solution**
 
 ```bash
+cd unmeshed-csharp-sdk
+
 dotnet build
 ```
 
