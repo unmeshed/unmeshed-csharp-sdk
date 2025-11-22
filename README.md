@@ -99,3 +99,54 @@ Full working examples can be found below:
 - **[Custom Worker Examples (Attribute-based and Non-Attribute)](https://github.com/unmeshed/unmeshed-csharp-sdk/blob/main/Unmeshed.Sdk.Examples/WorkerExample.cs)**
 
 - **[Simple Worker Examples (Failed Worker, Rescheduled Worker, Completion Worker)](https://github.com/unmeshed/unmeshed-csharp-sdk/blob/main/Unmeshed.Sdk.Workers/Examples/SimpleWorkers.cs)**
+
+## ▶️ Running the Process and Workers Examples Locally
+
+Follow the steps below to build and run the sample projects locally.
+
+### **1. Clone Unmeshed C# SDK Repository**
+
+```bash
+git clone https://github.com/unmeshed/unmeshed-csharp-sdk.git
+```
+
+### **2. Build the Solution**
+
+```bash
+dotnet build
+```
+
+### **3. Run the Worker Example**
+```bash
+cd unmeshed-csharp-sdk/Unmeshed.Sdk.Examples
+dotnet run worker
+```
+
+### **4. Run the Process Example**
+```bash
+cd unmeshed-csharp-sdk/Unmeshed.Sdk.Examples
+dotnet run process
+```
+
+
+## ▶️ Running the Standalone Workers Project Examples Locally
+
+Follow the steps below to build and run the Workers Project Examples Locally.
+
+### **1. Clone Unmeshed C# SDK Repository**
+
+```bash
+git clone https://github.com/unmeshed/unmeshed-csharp-sdk.git
+```
+
+### **2. Build the Solution**
+
+```bash
+dotnet build
+```
+
+### **2. Run the Project**
+```bash
+cd unmeshed-csharp-sdk/Unmeshed.Sdk.Examples
+dotnet run --project Unmeshed.Sdk.Workers/csharp-workers.csproj
+```
