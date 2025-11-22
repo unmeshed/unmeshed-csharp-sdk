@@ -9,6 +9,10 @@ Building the workers in C# mainly consists of the following steps:
 3. Create process using code
 4. API Documentation
 
+## Prerequisites
+
+*   **.NET 8.0** or higher
+
 ## Setup Unmeshed C# Package
 
 ```bash
