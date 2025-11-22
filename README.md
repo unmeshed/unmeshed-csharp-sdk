@@ -1,5 +1,18 @@
 # Unmeshed C# SDK
 
+This README will guide you on how to set up Unmeshed credentials, run workers, and get started with the Unmeshed platform. Read more about unmeshed on https://unmeshed.io/
+
+
+## About Unmeshed
+
+Unmeshed is a ⚡ fast, low latency orchestration platform, that can be used to build 🛠️, run 🏃, and scale 📈 API and
+microservices orchestration, scheduled jobs ⏰, and more with ease. Learn more on
+our [🌍 main website](https://unmeshed.io) or explore
+the [📖 documentation overview](https://unmeshed.io/docs/concepts/overview).
+
+Unmeshed is built by the ex-founders of Netflix Conductor. This is the next gen platform built using similar principles
+but is blazing fast and covers many more use cases.
+
 The unmeshed-csharp-sdk repository provides the client SDKs to build workers in C#.
 
 Building the workers in C# mainly consists of the following steps:
