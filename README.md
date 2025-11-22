@@ -61,8 +61,24 @@ await client.RegisterWorkerFunctionAsync(
     namespace: "default",
     name: "my-worker"
 );
+  
 ```
 
+### Run AttributeWorker
+
+```csharp
+await client.RegisterWorkersAsync("Unmeshed.Sdk.Workers.Examples");   
+ [WorkerFunction(Name = "return_map", Namespace = "default")]
+    public Dictionary<string, object> ReturnMap(Dictionary<string, object> input)
+    {
+        return new Dictionary<string, object>
+        {
+            { "key1", "value1" },
+            { "key2", 123 },
+            { "nested", new { foo = "bar" } }
+        };
+    }
+```
 ### Create Process using Code
 
 ```csharp
@@ -73,3 +89,13 @@ await client.RunProcessAsyncAsync(new ProcessRequestData
     Input = new Dictionary<string, object>()
 });
 ```
+
+## 🔗 Examples
+
+Full working examples can be found below:
+
+- **[Process Client Examples](https://github.com/unmeshed/unmeshed-csharp-sdk/blob/main/Unmeshed.Sdk.Examples/ProcessClientExample.cs)**
+
+- **[Custom Worker Examples (Attribute-based and Non-Attribute)](https://github.com/unmeshed/unmeshed-csharp-sdk/blob/main/Unmeshed.Sdk.Examples/WorkerExample.cs)**
+
+- **[Simple Worker Examples (Failed Worker, Rescheduled Worker, Completion Worker)](https://github.com/unmeshed/unmeshed-csharp-sdk/blob/main/Unmeshed.Sdk.Workers/Examples/SimpleWorkers.cs)**
