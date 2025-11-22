@@ -16,7 +16,7 @@ public class Worker
     /// <summary>The namespace of the worker.</summary>
     public string Namespace { get; set; } = "default";
     /// <summary>Maximum number of concurrent executions.</summary>
-    public int MaxInProgress { get; set; } = 100;
+    public int MaxInProgress { get; set; } = 10;
     /// <summary>Whether to use IO-bound thread pool.</summary>
     public bool IoThread { get; set; }
     /// <summary>The attribute associated with the worker (optional).</summary>
