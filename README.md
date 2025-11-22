@@ -114,7 +114,6 @@ git clone https://github.com/unmeshed/unmeshed-csharp-sdk.git
 
 ```bash
 cd unmeshed-csharp-sdk
-
 dotnet build
 ```
 
@@ -145,7 +144,6 @@ git clone https://github.com/unmeshed/unmeshed-csharp-sdk.git
 
 ```bash
 cd unmeshed-csharp-sdk
-
 dotnet build
 ```
 
