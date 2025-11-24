@@ -94,6 +94,30 @@ Required parameters have not been provided. Please ensure you have the following
                 maxInProgress: 10,
                 ioThread: false
             );
+
+
+            await client.RegisterWorkerFunctionAsync(
+                workerFunction: async (input) =>
+                {
+                    logger.LogInformation("Custom worker executing with input: {Input}", 
+                        string.Join(", ", input.Select(kvp => $"{kvp.Key}={kvp.Value}")));
+                    
+                    // Simulate some work
+                    await Task.Delay(100);
+                    
+                    // Return result
+                    return new Dictionary<string, object>
+                    {
+                        { "status", "success" },
+                        { "processedAt", DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() },
+                        { "inputCount", input.Count }
+                    };
+                },
+                @namespace: "ns1",
+                name: "custom_worker",
+                maxInProgress: 10,
+                ioThread: true
+            );
             logger.LogInformation("Custom worker function registered\n");
 
             // Example 3: Start the client and begin polling for work

@@ -22,8 +22,8 @@ public class StepSize
 public class StepQueueNameData
 {
     /// <summary>The process ID.</summary>
-    [JsonPropertyName("processId")]
-    public string ProcessId { get; set; } = string.Empty;
+    [JsonPropertyName("orgId")]
+    public int OrgId { get; set; } = 1;
 
     /// <summary>The namespace.</summary>
     [JsonPropertyName("namespace")]
