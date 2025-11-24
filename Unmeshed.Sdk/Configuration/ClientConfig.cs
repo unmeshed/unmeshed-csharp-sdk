@@ -1,5 +1,7 @@
 namespace Unmeshed.Sdk.Configuration;
 
+using System.Text.RegularExpressions;
+
 /// <summary>
 /// Configuration settings for the Unmeshed client.
 /// </summary>
@@ -84,7 +86,41 @@ public class ClientConfig
     /// <summary>
     /// Gets the full server URL.
     /// </summary>
-    public string ServerUrl => $"{BaseUrl}:{Port}";
+    /// <summary>
+    /// Gets the full server URL.
+    /// Logic matches Java SDK:
+    /// 1. If BaseUrl starts with https, use it as is.
+    /// 2. If BaseUrl already has a port (explicitly), use it as is.
+    /// 3. Otherwise, append the configured Port.
+    /// </summary>
+    public string ServerUrl
+    {
+        get
+        {
+            var baseUrl = BaseUrl;
+            if (baseUrl.EndsWith("/"))
+            {
+                baseUrl = baseUrl.Substring(0, baseUrl.Length - 1);
+            }
+
+            // If https, assume port is handled or default 443 is desired, don't append Port.
+            if (baseUrl.StartsWith("https:", StringComparison.OrdinalIgnoreCase))
+            {
+                return baseUrl;
+            }
+
+            // Check if port is explicitly present in the authority part.
+            // Regex checks for :digits at the end of the string or before a slash.
+            // We exclude the http:// part to avoid matching the scheme.
+            // Pattern: ^https?://[^/]*:\d+($|/)
+            if (Regex.IsMatch(baseUrl, @"^https?://[^/]*:\d+($|/)"))
+            {
+                return baseUrl;
+            }
+
+            return $"{baseUrl}:{Port}";
+        }
+    }
 
     /// <summary>
     /// Checks if credentials are properly configured.
