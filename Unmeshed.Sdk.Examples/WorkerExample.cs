@@ -55,7 +55,7 @@ Required parameters have not been provided. Please ensure you have the following
             WorkRequestBatchSize = 100,
             ResponseSubmitBatchSize = 500,
             StepTimeoutMillis = 30000,
-            EnableBatchProcessing = true // Enable batch processing for workers
+            EnableResultsSubmission = true // Enable batch processing for workers
         };
 
         // Create Unmeshed client

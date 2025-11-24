@@ -81,7 +81,7 @@ class Program
         var maxSubmitAttempts = int.Parse(GetEnvironmentVariable("UNMESHED_MAX_SUBMIT_ATTEMPTS", "100"));
         var connectionTimeoutSeconds = int.Parse(GetEnvironmentVariable("UNMESHED_CONNECTION_TIMEOUT_SECONDS", "60"));
         var fixedThreadPoolSize = int.Parse(GetEnvironmentVariable("UNMESHED_FIXED_THREAD_POOL_SIZE", "2"));
-        var enableBatchProcessing = bool.Parse(GetEnvironmentVariable("UNMESHED_ENABLE_BATCH_PROCESSING", "true"));
+        var enableResultsSubmission = bool.Parse(GetEnvironmentVariable("UNMESHED_ENABLE_RESULTS_SUBMISSION", "true"));
 
         if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(authToken))
         {
@@ -103,7 +103,7 @@ class Program
             MaxSubmitAttempts = maxSubmitAttempts,
             ConnectionTimeoutSeconds = connectionTimeoutSeconds,
             FixedThreadPoolSize = fixedThreadPoolSize,
-            EnableBatchProcessing = enableBatchProcessing,
+            EnableResultsSubmission = enableResultsSubmission,
             InitialDelayMillis = 20,
             StepTimeoutMillis = 1000L * 60 * 60 * 24 * 365 // 1 year (effectively no timeout)
         };

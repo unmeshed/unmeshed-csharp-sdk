@@ -57,7 +57,7 @@ Required parameters have not been provided. Please ensure you have the following
             InitialDelayMillis = 50,
             ResponseSubmitBatchSize = 2000,
             StepTimeoutMillis = 30000,
-            EnableBatchProcessing = true
+            EnableResultsSubmission = true
         };
 
         // Create Unmeshed client

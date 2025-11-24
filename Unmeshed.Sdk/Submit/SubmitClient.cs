@@ -49,17 +49,16 @@ public class SubmitClient : ISubmitClient
         _batchSemaphore = new SemaphoreSlim(1, 1);
         _shutdownCts = new CancellationTokenSource();
 
-        // Start background batch processor only if enabled
-        if (_config.EnableBatchProcessing)
+        if (!_config.EnableResultsSubmission)
         {
-            _batchProcessorTask = Task.Run(() => BatchProcessorAsync(_shutdownCts.Token));
-            _logger.LogInformation("Batch processing enabled for submit operations");
-        }
-        else
-        {
+            _logger.LogInformation("Batch processing is disabled for results submission");
             _batchProcessorTask = Task.CompletedTask;
-            _logger.LogInformation("Batch processing disabled - submissions will be sent immediately");
+            return;
         }
+
+        // Start background batch processor
+        _batchProcessorTask = Task.Run(() => BatchProcessorAsync(_shutdownCts.Token));
+        _logger.LogInformation("Batch processing enabled for submit operations");
     }
 
     /// <summary>
@@ -70,12 +69,6 @@ public class SubmitClient : ISubmitClient
         SemaphoreSlim semaphore,
         CancellationToken cancellationToken = default)
     {
-        if (!_config.EnableBatchProcessing)
-        {
-            // Submit immediately without batching
-            await SubmitImmediateAsync(response, semaphore, cancellationToken);
-            return;
-        }
 
         // Enqueue for batch processing
         var tracker = new WorkResponseTracker
@@ -90,48 +83,6 @@ public class SubmitClient : ISubmitClient
         _logger.LogDebug("Enqueued work response for step {StepId}", response.StepId);
 
         await Task.CompletedTask;
-    }
-
-    /// <summary>
-    /// Submits a work response immediately without batching.
-    /// </summary>
-    private async Task SubmitImmediateAsync(
-        WorkResponse response,
-        SemaphoreSlim semaphore,
-        CancellationToken cancellationToken)
-    {
-        try
-        {
-            _logger.LogDebug("Submitting work response immediately for step {StepId}", response.StepId);
-
-            var httpResponse = await _httpClient.PostAsJsonAsync(
-                "api/clients/bulkResults",
-                new List<WorkResponse> { response },
-                cancellationToken);
-
-            if (httpResponse.IsSuccessStatusCode)
-            {
-                _logger.LogDebug("Successfully submitted response for step {StepId}", response.StepId);
-                semaphore?.Release();
-            }
-            else
-            {
-                var errorContent = await httpResponse.Content.ReadAsStringAsync(cancellationToken);
-                _logger.LogWarning(
-                    "Failed to submit response for step {StepId}. Status: {StatusCode}, Error: {Error}",
-                    response.StepId,
-                    httpResponse.StatusCode,
-                    errorContent);
-                
-                // Release semaphore even on failure for immediate mode
-                semaphore?.Release();
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error submitting response immediately for step {StepId}", response.StepId);
-            semaphore?.Release();
-        }
     }
 
     /// <summary>

@@ -81,7 +81,7 @@ public class ClientConfig
     /// When true, submissions are batched and processed asynchronously in the background.
     /// When false, submissions are sent immediately without batching.
     /// </summary>
-    public bool EnableBatchProcessing { get; set; } = true;
+    public bool EnableResultsSubmission { get; set; } = true;
 
     /// <summary>
     /// Gets the full server URL.
