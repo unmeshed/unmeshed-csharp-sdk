@@ -43,18 +43,34 @@ Configure the authentication settings if your Unmeshed server requires authentic
 
 ### Configure API Client
 
+For HTTP based connections, you can configure the connection to the Unmeshed server in two ways. Note that the `Port` property is **optional** and is only required if the port is not included in the `BaseUrl`.
+
+1.  **Port in BaseUrl**: Include the port directly in the `BaseUrl` string.
+2.  **Separate Port**: Specify the `BaseUrl` (without port) and set the `Port` property separately.
+3.  The `Port` property is **optional** and typically only needed for non-standard ports with HTTP connections
+
 ```csharp
 using Unmeshed.Sdk;
 using Unmeshed.Sdk.Configuration;
 using Microsoft.Extensions.Logging;
 
+// Option 1: Port included in BaseUrl
 var config = new ClientConfig
 {
-    BaseUrl = "http://localhost",
-    Port = 8080,
+    BaseUrl = "http://localhost:8080",
+    // Port = 8080, // Optional since it's in BaseUrl
     ClientId = "your-client-id",
     AuthToken = "your-auth-token"
 };
+
+// Option 2: Port specified separately
+// var config = new ClientConfig
+// {
+//     BaseUrl = "http://localhost",
+//     Port = 8080,
+//     ClientId = "your-client-id",
+//     AuthToken = "your-auth-token"
+// };
 
 var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
 var client = new UnmeshedClient(config, loggerFactory);
