@@ -51,7 +51,7 @@ public class SubmitClient : ISubmitClient
 
         if (!_config.EnableResultsSubmission)
         {
-            _logger.LogInformation("Batch processing is disabled for results submission");
+            _logger.LogWarning("Batch processing is disabled for results submission");
             _batchProcessorTask = Task.CompletedTask;
             return;
         }

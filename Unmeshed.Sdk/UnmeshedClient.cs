@@ -374,6 +374,12 @@ public class UnmeshedClient : IDisposable
             _logger.LogError("No workers configured. Cannot start polling.");
             throw new InvalidOperationException("No workers registered. Register workers before starting.");
         }
+        
+        if (!_config.EnableResultsSubmission)
+        {
+            _logger.LogWarning("Batch processing is disabled for results submission");
+            return;
+        }
 
         // Initialize poll states for each worker
         foreach (var worker in workers)
