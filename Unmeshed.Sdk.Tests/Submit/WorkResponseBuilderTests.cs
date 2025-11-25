@@ -47,7 +47,7 @@ public class WorkResponseBuilderTests
         response.ProcessId.Should().Be(456);
         response.StepExecutionId.Should().Be(1);
         response.RunCount.Should().Be(1);
-        response.Status.Should().Be("COMPLETED");
+        response.Status.Should().Be(UnmeshedConstants.StepStatus.Completed);
         response.Output.Should().BeEquivalentTo(result.Output);
         response.StartedAt.Should().Be(1000);
     }
@@ -79,7 +79,7 @@ public class WorkResponseBuilderTests
         response.ProcessId.Should().Be(456);
         response.StepExecutionId.Should().Be(1);
         response.RunCount.Should().Be(1);
-        response.Status.Should().Be("RUNNING");
+        response.Status.Should().Be(UnmeshedConstants.StepStatus.Running);
         response.Output.Should().BeEquivalentTo(result.Output);
         response.RescheduleAfterSeconds.Should().Be(60);
         response.StartedAt.Should().Be(1000);
@@ -111,7 +111,7 @@ public class WorkResponseBuilderTests
         response.ProcessId.Should().Be(456);
         response.StepExecutionId.Should().Be(1);
         response.RunCount.Should().Be(1);
-        response.Status.Should().Be("FAILED");
+        response.Status.Should().Be(UnmeshedConstants.StepStatus.Failed);
         
         response.Output.Should().ContainKey("error");
         response.Output["error"].Should().Be("Test error");

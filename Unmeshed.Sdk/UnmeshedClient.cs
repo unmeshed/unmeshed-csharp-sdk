@@ -479,7 +479,7 @@ public class UnmeshedClient : IDisposable
                                 {
                                     OrgId = 1,
                                     Namespace = pollState.Worker.Namespace,
-                                    StepType = "WORKER",
+                                    StepType = UnmeshedConstants.StepType.Worker,
                                     Name = pollState.Worker.Name
                                 },
                                 Size = acquired

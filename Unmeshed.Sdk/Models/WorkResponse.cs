@@ -29,7 +29,7 @@ public class WorkResponse
 
     /// <summary>The status of the execution (e.g., COMPLETED, FAILED, RUNNING).</summary>
     [JsonPropertyName("status")]
-    public string Status { get; set; } = "COMPLETED";
+    public string Status { get; set; } = UnmeshedConstants.StepStatus.Completed;
 
     /// <summary>Seconds to wait before rescheduling the worker.</summary>
     [JsonPropertyName("rescheduleAfterSeconds")]

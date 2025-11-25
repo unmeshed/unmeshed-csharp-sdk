@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using Microsoft.Extensions.Logging;
 using Unmeshed.Sdk.Workers;
+using Unmeshed.Sdk.Models;
 
 namespace Unmeshed.Sdk.Registration;
 
@@ -81,7 +82,7 @@ public class RegistrationClient : IRegistrationClient
             {
                 processId = 0,
                 @namespace = w.Namespace,
-                stepType = "WORKER",
+                stepType = UnmeshedConstants.StepType.Worker,
                 name = w.Name
             }).ToList();
 

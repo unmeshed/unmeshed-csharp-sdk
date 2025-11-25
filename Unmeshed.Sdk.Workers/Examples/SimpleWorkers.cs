@@ -219,7 +219,7 @@ public class CalculatorWorker
                     { "attempt", _attempt },
                     { "message", $"Rescheduling attempt {_attempt}" }
                 },
-                Status = "RUNNING",
+                Status = UnmeshedConstants.StepStatus.Running,
                 RescheduleAfterSeconds = 5
             };
         }
@@ -232,7 +232,7 @@ public class CalculatorWorker
                 { "attempt", _attempt },
                 { "message", "Completed after global increments" }
             },
-            Status = "COMPLETED"
+            Status = UnmeshedConstants.StepStatus.Completed
         };
     }
 }

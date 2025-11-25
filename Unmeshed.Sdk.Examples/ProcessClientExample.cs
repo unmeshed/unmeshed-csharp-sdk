@@ -85,6 +85,9 @@ Required parameters have not been provided. Please ensure you have the following
             // ===== PROCESS SEARCH =====
             await ProcessSearchExamples(client, logger);
 
+            // ===== CLEANUP: DELETE PROCESS DEFINITION =====
+            await DeleteProcessDefinitionExample(client, logger);
+
             // ===== API MAPPING =====
             await ApiMappingExamples(client, logger);
 
@@ -113,9 +116,9 @@ Required parameters have not been provided. Please ensure you have the following
         var processDefinition = new ProcessDefinition
         {
             Namespace = "default",
-            Name = "test_process",
+            Name = "test_process_v2",
             Version = 1,
-            Type = "API_ORCHESTRATION",
+            Type = UnmeshedConstants.ProcessType.ApiOrchestration,
             Description = "Test unmeshed process created by C# SDK",
             Steps = new List<StepDefinition>
             {
@@ -123,7 +126,7 @@ Required parameters have not been provided. Please ensure you have the following
                 {
                     Name = "test_noop",
                     Ref = "test_noop_ref",
-                    Type = "NOOP",
+                    Type = UnmeshedConstants.StepType.Noop,
                     Namespace = "default",
                     Input = new Dictionary<string, object> { { "key1", "val1" } }
                 }
@@ -136,7 +139,7 @@ Required parameters have not been provided. Please ensure you have the following
 
         // Get process definition
         logger.LogInformation("\nFetching process definition...");
-        var fetched = await client.GetProcessDefinitionAsync("default", "test_process", version: null);
+        var fetched = await client.GetProcessDefinitionAsync("default", "test_process_v2", version: null);
         logger.LogInformation("Fetched: {Namespace}:{Name} v{Version}", fetched.Namespace, fetched.Name, fetched.Version);
 
         // Get all process definitions
@@ -148,9 +151,9 @@ Required parameters have not been provided. Please ensure you have the following
         var updated = new ProcessDefinition
         {
             Namespace = "default",
-            Name = "test_process",
+            Name = "test_process_v2",
             Version = 2,
-            Type = "API_ORCHESTRATION",
+            Type = UnmeshedConstants.ProcessType.ApiOrchestration,
             Description = "Updated test unmeshed process created by C# SDK",
             Steps = new List<StepDefinition>
             {
@@ -158,7 +161,7 @@ Required parameters have not been provided. Please ensure you have the following
                 {
                     Name = "test_noop",
                     Ref = "test_noop_ref",
-                    Type = "NOOP",
+                    Type = UnmeshedConstants.StepType.Noop,
                     Namespace = "default",
                     Input = new Dictionary<string, object> { { "key1", "val1" } }
                 },
@@ -166,7 +169,7 @@ Required parameters have not been provided. Please ensure you have the following
                 {
                     Name = "test_noop_2",
                     Ref = "test_noop_ref_2",
-                    Type = "NOOP",
+                    Type = UnmeshedConstants.StepType.Noop,
                     Namespace = "default",
                     Input = new Dictionary<string, object> { { "key2", "val2" } }
                 }
@@ -178,10 +181,8 @@ Required parameters have not been provided. Please ensure you have the following
         logger.LogInformation("Updated: {Namespace}:{Name} v{Version} with {StepCount} steps", 
             updatedResult.Namespace, updatedResult.Name, updatedResult.Version, updatedResult.Steps.Count);
 
-        // Delete process definition
-        logger.LogInformation("\nDeleting process definition...");
-        var deleteResult = await client.DeleteProcessDefinitionsAsync(new List<ProcessDefinition> { updatedResult }, versionOnly: null);
-        logger.LogInformation("Deleted process definition");
+        // Note: We don't delete the process definition here as it's needed for subsequent examples
+        // Delete operation can be performed manually or at the end of all examples if needed
     }
 
     /// <summary>
@@ -195,7 +196,7 @@ Required parameters have not been provided. Please ensure you have the following
         var syncRequest = new ProcessRequestData
         {
             Namespace = "default",
-            Name = "example_process",
+            Name = "test_process_v2",
             Input = new Dictionary<string, object>
             {
                 { "key1", "value1" },
@@ -214,7 +215,7 @@ Required parameters have not been provided. Please ensure you have the following
         var asyncRequest = new ProcessRequestData
         {
             Namespace = "default",
-            Name = "long_running_process",
+            Name = "test_process_v2",
             Input = new Dictionary<string, object> { { "duration", 10 } }
         };
 
@@ -241,7 +242,7 @@ Required parameters have not been provided. Please ensure you have the following
         var request = new ProcessRequestData
         {
             Namespace = "default",
-            Name = "test_process",
+            Name = "test_process_v2",
             Input = new Dictionary<string, object> { { "test", "data" } }
         };
 
@@ -280,7 +281,7 @@ Required parameters have not been provided. Please ensure you have the following
             var request = new ProcessRequestData
             {
                 Namespace = "default",
-                Name = "bulk_test_process",
+                Name = "test_process_v2",
                 Input = new Dictionary<string, object> { { "index", i } }
             };
             var process = await client.RunProcessAsyncAsync(request);
@@ -320,7 +321,7 @@ Required parameters have not been provided. Please ensure you have the following
         var request = new ProcessRequestData
         {
             Namespace = "default",
-            Name = "manipulation_test",
+            Name = "test_process_v2",
             Input = new Dictionary<string, object> { { "test", "manipulation" } }
         };
 
@@ -373,7 +374,7 @@ Required parameters have not been provided. Please ensure you have the following
         var statusSearch = new ProcessSearchRequest
         {
             Namespace = "default",
-            Statuses = new List<string> { "COMPLETED", "RUNNING" },
+            Statuses = new List<string> { UnmeshedConstants.ProcessStatus.Completed, UnmeshedConstants.ProcessStatus.Running },
             Limit = 15
         };
 
@@ -383,18 +384,46 @@ Required parameters have not been provided. Please ensure you have the following
     }
 
     /// <summary>
+    /// Example for deleting the test process definition
+    /// </summary>
+    private static async Task DeleteProcessDefinitionExample(UnmeshedClient client, ILogger logger)
+    {
+        logger.LogInformation("\n--- Delete Process Definition Example ---");
+
+        try
+        {
+            // Get the process definition to delete
+            logger.LogInformation("Fetching test_process_v2 for deletion...");
+            var processDefToDelete = await client.GetProcessDefinitionAsync("default", "test_process_v2", version: null);
+            
+            logger.LogInformation("Deleting process definition: {Namespace}:{Name} v{Version}", 
+                processDefToDelete.Namespace, processDefToDelete.Name, processDefToDelete.Version);
+            
+            var deleteResult = await client.DeleteProcessDefinitionsAsync(
+                new List<ProcessDefinition> { processDefToDelete }, 
+                versionOnly: null);
+            
+            logger.LogInformation("Successfully deleted process definition");
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning("Failed to delete process definition: {Message}", ex.Message);
+        }
+    }
+
+    /// <summary>
     /// Examples for API Mapping
     /// </summary>
     private static async Task ApiMappingExamples(UnmeshedClient client, ILogger logger)
     {
         logger.LogInformation("\n--- API Mapping Examples ---");
 
-        // API Mapping GET (example endpoint - adjust based on your setup)
+        // API Mapping GET - using test_process_v2 endpoint
         try
         {
-            logger.LogInformation("Invoking API mapping GET...");
+            logger.LogInformation("Invoking API mapping GET for test_process_v2...");
             var getResult = await client.InvokeApiMappingGetAsync(
-                endpoint: "example/endpoint",
+                endpoint: "test_process_v2",
                 requestId: Guid.NewGuid().ToString(),
                 correlationId: Guid.NewGuid().ToString(),
                 callType: ApiCallType.ASYNC
@@ -406,10 +435,10 @@ Required parameters have not been provided. Please ensure you have the following
             logger.LogWarning("API GET example failed (endpoint may not exist): {Message}", ex.Message);
         }
 
-        // API Mapping POST (example endpoint - adjust based on your setup)
+        // API Mapping POST - using test_process_v2 endpoint
         try
         {
-            logger.LogInformation("\nInvoking API mapping POST...");
+            logger.LogInformation("\nInvoking API mapping POST for test_process_v2...");
             var postInput = new Dictionary<string, object>
             {
                 { "key1", "value1" },
@@ -418,7 +447,7 @@ Required parameters have not been provided. Please ensure you have the following
             };
 
             var postResult = await client.InvokeApiMappingPostAsync(
-                endpoint: "example/endpoint",
+                endpoint: "test_process_v2",
                 input: postInput,
                 requestId: Guid.NewGuid().ToString(),
                 correlationId: Guid.NewGuid().ToString(),

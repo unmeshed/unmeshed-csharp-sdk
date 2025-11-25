@@ -19,7 +19,7 @@ public class WorkResponseBuilder
             ProcessId = request.ProcessId,
             StepExecutionId = request.StepExecutionId,
             RunCount = request.RunCount,
-            Status = "COMPLETED",
+            Status = UnmeshedConstants.StepStatus.Completed,
             Output = result.Output,
             StartedAt = result.StartedAt
         };
@@ -36,7 +36,7 @@ public class WorkResponseBuilder
             ProcessId = request.ProcessId,
             StepExecutionId = request.StepExecutionId,
             RunCount = request.RunCount,
-            Status = "RUNNING",
+            Status = UnmeshedConstants.StepStatus.Running,
             Output = result.Output,
             RescheduleAfterSeconds = result.RescheduleAfterSeconds,
             StartedAt = result.StartedAt
@@ -67,7 +67,7 @@ public class WorkResponseBuilder
             ProcessId = request.ProcessId,
             StepExecutionId = request.StepExecutionId,
             RunCount = request.RunCount,
-            Status = "FAILED",
+            Status = UnmeshedConstants.StepStatus.Failed,
             Output = output,
             StartedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
         };
