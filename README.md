@@ -187,8 +187,7 @@ cd unmeshed-csharp-sdk
 dotnet build
 ```
 
-### **2. Run the Project**
+### **2. Run the Workers example Project**
 ```bash
-cd unmeshed-csharp-sdk/Unmeshed.Sdk.Examples
 dotnet run --project Unmeshed.Sdk.Workers/csharp-workers.csproj
 ```
