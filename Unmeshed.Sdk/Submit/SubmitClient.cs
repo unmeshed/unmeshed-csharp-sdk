@@ -171,7 +171,7 @@ public class SubmitClient : ISubmitClient
             }
             else
             {
-                var errorContent = await httpResponse.Content.ReadAsStringAsync(cancellationToken);
+                var errorContent = await httpResponse.Content.ReadAsStringAsync();
                 _logger.LogWarning(
                     "Failed to submit batch. Status: {StatusCode}, Error: {Error}",
                     httpResponse.StatusCode,
@@ -179,7 +179,7 @@ public class SubmitClient : ISubmitClient
 
                 // Check if error is permanent
                 bool isPermanentError = _config.PermanentErrorKeywords
-                    .Any(keyword => errorContent.Contains(keyword, StringComparison.OrdinalIgnoreCase));
+                    .Any(keyword => errorContent.IndexOf(keyword, StringComparison.OrdinalIgnoreCase) >= 0);
 
                 // Retry or release based on error type
                 await HandleFailedBatchAsync(batch, isPermanentError, cancellationToken);

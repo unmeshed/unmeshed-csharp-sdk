@@ -423,7 +423,7 @@ Required parameters have not been provided. Please ensure you have the following
         {
             logger.LogInformation("Invoking API mapping GET for test_process_v2...");
             var getResult = await client.InvokeApiMappingGetAsync(
-                endpoint: "test_process_v2",
+                endpoint: "endpoint/tayprq8YjCPNQF5I3oHc/Tf4K9pKwlA8JC8gbux4I",
                 requestId: Guid.NewGuid().ToString(),
                 correlationId: Guid.NewGuid().ToString(),
                 callType: ApiCallType.ASYNC
@@ -447,11 +447,11 @@ Required parameters have not been provided. Please ensure you have the following
             };
 
             var postResult = await client.InvokeApiMappingPostAsync(
-                endpoint: "test_process_v2",
+                endpoint: "endpoint/tayprq8YjCPNQF5I3oHc/Tf4K9pKwlA8JC8gbux4I",
                 input: postInput,
                 requestId: Guid.NewGuid().ToString(),
                 correlationId: Guid.NewGuid().ToString(),
-                callType: ApiCallType.SYNC
+                callType: ApiCallType.ASYNC
             );
             logger.LogInformation("API POST result: {Result}", postResult?.ToJsonString());
         }

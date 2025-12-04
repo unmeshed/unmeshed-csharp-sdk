@@ -452,8 +452,10 @@ public class UnmeshedClient : IDisposable
                 // Build poll sizes from available permits
                 var pollSizes = new List<StepSize>();
 
-                foreach (var (workerId, pollState) in _pollStates)
+                foreach (var kvp in _pollStates)
                 {
+                    var workerId = kvp.Key;
+                    var pollState = kvp.Value;
                     var availablePermits = pollState.Semaphore.CurrentCount;
                     var maxToAcquire = Math.Min(
                         _config.WorkRequestBatchSize,

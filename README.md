@@ -24,7 +24,18 @@ Building the workers in C# mainly consists of the following steps:
 
 ## Prerequisites
 
-*   **.NET 8.0** or higher
+The Unmeshed C# SDK targets **.NET Standard 2.0**, providing broad compatibility across multiple platforms:
+
+### Supported Platforms
+
+- **.NET Core** 2.0 or higher
+- **.NET** 5.0 or higher (including .NET 6, 7, 8, 9, 10+)
+- **.NET Framework** 4.6.1 or higher
+- **Mono** 5.4 or higher
+- **Xamarin** (iOS, Android, Mac)
+- **Unity** 2018.1 or higher
+
+This means you can use the SDK in virtually any modern .NET application!
 
 ## Setup Unmeshed C# Package
 

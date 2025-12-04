@@ -539,7 +539,7 @@ public class ProcessClient : IProcessClient
             var response = await _httpClient.GetAsync(url, cancellationToken);
             await response.EnsureSuccessStatusCodeWithContentAsync();
 
-            var jsonString = await response.Content.ReadAsStringAsync(cancellationToken);
+            var jsonString = await response.Content.ReadAsStringAsync();
             return JsonNode.Parse(jsonString);
         }
         catch (Exception ex)
@@ -574,7 +574,7 @@ public class ProcessClient : IProcessClient
             var response = await _httpClient.PostAsJsonAsync(url, input, cancellationToken);
             await response.EnsureSuccessStatusCodeWithContentAsync();
 
-            var jsonString = await response.Content.ReadAsStringAsync(cancellationToken);
+            var jsonString = await response.Content.ReadAsStringAsync();
             return JsonNode.Parse(jsonString);
         }
         catch (Exception ex)
