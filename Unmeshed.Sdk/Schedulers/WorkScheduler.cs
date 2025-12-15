@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Unmeshed.Sdk.Configuration;
 using Unmeshed.Sdk.Models;
 using Unmeshed.Sdk.Workers;
+using System.Threading;
 
 namespace Unmeshed.Sdk.Schedulers;
 
@@ -13,6 +14,8 @@ namespace Unmeshed.Sdk.Schedulers;
 /// </summary>
 public class WorkScheduler : IWorkScheduler
 {
+    public static readonly ThreadLocal<WorkRequest> threadLocalWorkRequest = new ThreadLocal<WorkRequest>(() => new WorkRequest());
+
     private readonly ClientConfig _config;
     private readonly ILogger<WorkScheduler> _logger;
     private readonly ConcurrentDictionary<string, Worker> _workers;
@@ -38,7 +41,8 @@ public class WorkScheduler : IWorkScheduler
     /// </summary>
     public void AddWorker(string workerStepName, Worker worker)
     {
-        _workers[workerStepName] = worker;
+        var key = GetWorkerKey(worker.Namespace, worker.Name);
+        _workers[key] = worker;
         _logger.LogInformation(
             "Registered worker: {Namespace}:{Name} (MaxInProgress: {MaxInProgress}, IoThread: {IoThread})",
             worker.Namespace,
@@ -54,11 +58,16 @@ public class WorkScheduler : IWorkScheduler
         WorkRequest workRequest,
         CancellationToken cancellationToken = default)
     {
+        threadLocalWorkRequest.Value = workRequest;
         var startedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
         try
         {
-            if (!_workers.TryGetValue(workRequest.StepName, out var worker))
+            var workerKey = GetWorkerKey(
+                workRequest.StepNamespace,
+                workRequest.StepName
+            );
+            if (!_workers.TryGetValue(workerKey, out var worker))
             {
                 throw new InvalidOperationException(
                     $"No worker registered for step: {workRequest.StepName}");
@@ -305,6 +314,11 @@ internal class LimitedConcurrencyLevelTaskScheduler : TaskScheduler
     protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
     {
         return false; // Don't allow inline execution
+    }
+
+    private static string GetWorkerKey(string @namespace, string name)
+    {
+        return $"{@namespace}:{name}";
     }
 
     protected override IEnumerable<Task> GetScheduledTasks()
