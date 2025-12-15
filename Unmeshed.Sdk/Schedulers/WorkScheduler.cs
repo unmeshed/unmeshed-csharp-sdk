@@ -14,7 +14,7 @@ namespace Unmeshed.Sdk.Schedulers;
 /// </summary>
 public class WorkScheduler : IWorkScheduler
 {
-    public static readonly ThreadLocal<WorkRequest> threadLocalWorkRequest = new ThreadLocal<WorkRequest>(() => new WorkRequest());
+    public static readonly AsyncLocal<WorkRequest> CurrentWorkRequest = new AsyncLocal<WorkRequest>();
 
     private readonly ClientConfig _config;
     private readonly ILogger<WorkScheduler> _logger;
@@ -34,6 +34,11 @@ public class WorkScheduler : IWorkScheduler
         // Create separate task schedulers for IO and CPU-bound work
         _ioTaskScheduler = TaskScheduler.Default;
         _cpuTaskScheduler = new LimitedConcurrencyLevelTaskScheduler(_config.FixedThreadPoolSize);
+    }
+
+    private static string GetWorkerKey(string @namespace, string name)
+    {
+       return $"{@namespace}:{name}";
     }
 
     /// <summary>
@@ -58,7 +63,7 @@ public class WorkScheduler : IWorkScheduler
         WorkRequest workRequest,
         CancellationToken cancellationToken = default)
     {
-        threadLocalWorkRequest.Value = workRequest;
+        CurrentWorkRequest.Value = workRequest;
         var startedAt = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
         try
@@ -314,11 +319,6 @@ internal class LimitedConcurrencyLevelTaskScheduler : TaskScheduler
     protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
     {
         return false; // Don't allow inline execution
-    }
-
-    private static string GetWorkerKey(string @namespace, string name)
-    {
-        return $"{@namespace}:{name}";
     }
 
     protected override IEnumerable<Task> GetScheduledTasks()

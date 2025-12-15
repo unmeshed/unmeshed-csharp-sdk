@@ -8,7 +8,7 @@ public class WorkContext
     /// <summary>The method to get CurrentWorkRequest.</summary>
     public static WorkRequest CurrentWorkRequest()
     {
-        WorkRequest workRequest = WorkSchedulerImpl.threadLocalWorkRequest.Value;
+        WorkRequest workRequest = WorkScheduler.CurrentWorkRequest.Value;
         return workRequest;
     }
 }
