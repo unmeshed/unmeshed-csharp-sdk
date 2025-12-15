@@ -104,6 +104,12 @@ await client.RegisterWorkerFunctionAsync(
   
 ```
 
+### Get Current Work Request in the Worker
+
+```csharp
+var currentWorkRequest = WorkContext.CurrentWorkRequest();
+
+```
 ### Run AttributeWorker
 
 ```csharp

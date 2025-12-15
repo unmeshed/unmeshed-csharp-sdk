@@ -49,6 +49,11 @@ public class EchoWorker
         }
 
         // Simulate processing delay if specified
+         var currentWorkRequest = WorkContext.CurrentWorkRequest();
+         if (currentWorkRequest != null)
+         {
+            Console.WriteLine($"[EchoWorker] Executing step {currentWorkRequest.StepName} (ID: {currentWorkRequest.StepId})");
+         }
         if (request.DelayMs > 0)
         {
             await Task.Delay(request.DelayMs);
