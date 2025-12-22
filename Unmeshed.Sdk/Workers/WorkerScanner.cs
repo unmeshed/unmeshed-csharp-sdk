@@ -42,7 +42,7 @@ public static class WorkerScanner
 
                             foreach (var stepName in attr.WorkStepNames.Distinct())
                             {
-                                 var worker = new Worker
+                                 var w = new Worker
                                   {
                                         Method = method,
                                         Name = stepName,
@@ -52,7 +52,7 @@ public static class WorkerScanner
                                         WorkerFunction = attr,
                                         Instance = instance
                                   };
-                                  workers.Add(worker);
+                                  workers.Add(w);
                             }
 
                             var worker = new Worker
