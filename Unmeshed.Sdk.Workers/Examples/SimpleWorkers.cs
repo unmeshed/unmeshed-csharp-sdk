@@ -159,7 +159,7 @@ public class CalculatorWorker
     /// <summary>
     /// A worker that intentionally fails to test error handling.
     /// </summary>
-    [WorkerFunction(Name = "fail", Namespace = "default", WorkStepNames = new[] { "step1", "step2" })]
+    [WorkerFunction(Name = "fail", Namespace = "default", WorkStepNames = new[] { "step1", "step2" }, MaxInProgress = 100)]
     public Task FailAsync(Dictionary<string, object> input)
     {
         string message = "This is a deliberate failure.";
