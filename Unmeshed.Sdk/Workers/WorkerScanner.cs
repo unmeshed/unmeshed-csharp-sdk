@@ -40,6 +40,21 @@ public static class WorkerScanner
                                 instance = Activator.CreateInstance(type);
                             }
 
+                            foreach (var stepName in workStepNames.Distinct())
+                            {
+                                 var worker = new Worker
+                                  {
+                                        Method = method,
+                                        Name = stepName,
+                                        Namespace = attr.Namespace,
+                                        MaxInProgress = attr.MaxInProgress,
+                                        IoThread = attr.IoThread,
+                                        WorkerFunction = attr,
+                                        Instance = instance
+                                  };
+                                  workers.Add(worker);
+                            }
+
                             var worker = new Worker
                             {
                                 Method = method,

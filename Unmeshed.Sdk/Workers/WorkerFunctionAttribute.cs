@@ -17,6 +17,11 @@ public class WorkerFunctionAttribute : Attribute
     public string Namespace { get; set; } = "default";
 
     /// <summary>
+    /// Gets or sets the workStepNames of the worker.
+    /// </summary>
+    public string[] WorkStepNames { get; set; } = Array.Empty<string>();
+
+    /// <summary>
     /// Gets or sets the maximum number of concurrent executions.
     /// </summary>
     public int MaxInProgress { get; set; } = 10;

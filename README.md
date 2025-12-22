@@ -125,6 +125,22 @@ await client.RegisterWorkersAsync("Unmeshed.Sdk.Workers.Examples");
         };
     }
 ```
+
+### Register Multiple worker in one go using WorkStepNames attribute
+
+```csharp
+await client.RegisterWorkersAsync("Unmeshed.Sdk.Workers.Examples");   
+ [WorkerFunction(Name = "return_map", Namespace = "default", WorkStepNames = new[] { "step1", "step2" })]
+    public Dictionary<string, object> ReturnMap(Dictionary<string, object> input)
+    {
+        return new Dictionary<string, object>
+        {
+            { "key1", "value1" },
+            { "key2", 123 },
+            { "nested", new { foo = "bar" } }
+        };
+    }
+```
 ### Create Process using Code
 
 ```csharp
