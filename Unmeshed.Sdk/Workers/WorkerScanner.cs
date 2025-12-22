@@ -40,7 +40,7 @@ public static class WorkerScanner
                                 instance = Activator.CreateInstance(type);
                             }
 
-                            foreach (var stepName in workStepNames.Distinct())
+                            foreach (var stepName in attr.WorkStepNames.Distinct())
                             {
                                  var worker = new Worker
                                   {
