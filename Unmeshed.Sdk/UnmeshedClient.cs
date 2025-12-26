@@ -54,7 +54,7 @@ public class UnmeshedClient : IDisposable
 
         // Initialize clients
         _registrationClient = new RegistrationClient(httpClientFactory, _loggerFactory);
-        _pollerClient = new PollerClient(httpClientFactory, _config, _loggerFactory);
+        _pollerClient = new PollerClient(httpClientFactory, _config, GetHostName(), _loggerFactory);
         _workScheduler = new WorkScheduler(_config, _loggerFactory);
         _submitClient = new SubmitClient(httpClientFactory, _config, _loggerFactory);
         _processClient = new ProcessClient(httpClientFactory, _config, _loggerFactory);
@@ -70,6 +70,47 @@ public class UnmeshedClient : IDisposable
     }
 
     #region Worker Registration
+
+    /// <summary>
+    /// Gets the hostname for this client instance.
+    /// Checks environment variables in order: UNMESHED_HOST_NAME, HOSTNAME, COMPUTERNAME
+    /// Falls back to System.Net.Dns.GetHostName() or "-" if all else fails.
+    /// </summary>
+    /// <returns>The hostname as a string.</returns>
+    public static string GetHostName()
+    {
+       var unmeshedHostName = Environment.GetEnvironmentVariables()["UNMESHED_HOST_NAME"] as string;
+       if (!string.IsNullOrWhiteSpace(unmeshedHostName))
+       {
+          return unmeshedHostName.Trim();
+       }
+       // Check HOSTNAME environment variable (Linux, macOS)
+       var hostname = Environment.GetEnvironmentVariables()["HOSTNAME"] as string;
+       if (!string.IsNullOrWhiteSpace(hostname))
+       {
+          return hostname.Trim();
+       }
+       // Check COMPUTERNAME environment variable (Windows)
+       hostname = Environment.GetEnvironmentVariables()["COMPUTERNAME"] as string;
+       if (!string.IsNullOrWhiteSpace(hostname))
+       {
+           return hostname.Trim();
+       }
+       // Try to get hostname from System.Net.Dns
+       try
+       {
+          hostname = System.Net.Dns.GetHostName();
+          if (!string.IsNullOrWhiteSpace(hostname))
+          {
+             return hostname.Trim();
+          }
+       }
+       catch (Exception)
+       {
+           // Ignore exceptions and fall through to default
+       }
+       return "-";
+    }
 
     /// <summary>
     /// Registers workers by scanning the specified namespace.
