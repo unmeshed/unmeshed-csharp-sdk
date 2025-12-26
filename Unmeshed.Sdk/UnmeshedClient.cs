@@ -63,10 +63,23 @@ public class UnmeshedClient : IDisposable
         _pollStates = new ConcurrentDictionary<string, StepQueuePollState>();
         _pollingCts = new CancellationTokenSource();
 
-        _logger.LogInformation(
-            "UnmeshedClient initialized for {BaseUrl}:{Port}",
-            _config.BaseUrl,
-            _config.Port);
+         var baseUrl = _config.BaseUrl?.TrimEnd('/') ?? "UNKNOWN";
+
+         string endpoint;
+
+         if (baseUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+         {
+             // If already contains port, DO NOT add again
+             endpoint = Uri.TryCreate(baseUrl, UriKind.Absolute, out var uri)
+                 ? uri.IsDefaultPort ? $"{baseUrl}:{_config.Port}" : baseUrl
+                 : baseUrl;
+         }
+         else
+         {
+             endpoint = baseUrl;
+         }
+
+         _logger.LogInformation("UnmeshedClient initialized for {Endpoint}", endpoint);
     }
 
     #region Worker Registration
