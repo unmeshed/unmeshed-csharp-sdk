@@ -26,6 +26,7 @@ public class PollerClient : IPollerClient
 {
     private readonly HttpClient _httpClient;
     private readonly ClientConfig _config;
+    private readonly string _unmeshedHostName;
     private readonly ILogger<PollerClient> _logger;
 
     /// <summary>
@@ -34,10 +35,12 @@ public class PollerClient : IPollerClient
     public PollerClient(
         Http.IHttpClientFactory httpClientFactory,
         ClientConfig config,
+        string unmeshedHostName,
         ILoggerFactory loggerFactory)
     {
         _httpClient = httpClientFactory.CreateClient();
         _config = config;
+        _unmeshedHostName = unmeshedHostName;
         _logger = loggerFactory.CreateLogger<PollerClient>();
     }
 
@@ -57,10 +60,13 @@ public class PollerClient : IPollerClient
 
             _logger.LogDebug("Polling for work with {Count} step sizes", pollSizes.Count);
 
-            var response = await _httpClient.PostAsJsonAsync(
-                "api/clients/poll",
-                pollSizes,
-                cancellationToken);
+            using var request = new HttpRequestMessage(HttpMethod.Post, "api/clients/poll")
+            {
+                Content = JsonContent.Create(pollSizes)
+            };
+            request.Headers.Add("UNMESHED_HOST_NAME", _unmeshedHostName);
+
+            var response = await _httpClient.SendAsync(request, cancellationToken);
 
             response.EnsureSuccessStatusCode();
 
