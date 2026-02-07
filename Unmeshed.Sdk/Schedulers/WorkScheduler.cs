@@ -21,15 +21,17 @@ public class WorkScheduler : IWorkScheduler
     private readonly ConcurrentDictionary<string, Worker> _workers;
     private readonly TaskScheduler _ioTaskScheduler;
     private readonly TaskScheduler _cpuTaskScheduler;
+    private readonly IServiceProvider? _serviceProvider;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="WorkScheduler"/> class.
     /// </summary>
-    public WorkScheduler(ClientConfig config, ILoggerFactory loggerFactory)
+    public WorkScheduler(ClientConfig config, ILoggerFactory loggerFactory, IServiceProvider? serviceProvider = null)
     {
         _config = config;
         _logger = loggerFactory.CreateLogger<WorkScheduler>();
         _workers = new ConcurrentDictionary<string, Worker>();
+        _serviceProvider = serviceProvider;
 
         // Create separate task schedulers for IO and CPU-bound work
         _ioTaskScheduler = TaskScheduler.Default;
@@ -140,6 +142,7 @@ public class WorkScheduler : IWorkScheduler
         CancellationToken cancellationToken)
     {
         var method = worker.Method!;
+        var workerInstance = ResolveWorkerInstance(worker, method);
         var parameters = method.GetParameters();
         var args = new object?[parameters.Length];
 
@@ -165,7 +168,7 @@ public class WorkScheduler : IWorkScheduler
         try
         {
             // Invoke method
-            var result = method.Invoke(worker.Instance, args);
+            var result = method.Invoke(workerInstance, args);
 
             // Handle async methods
             if (result is Task task)
@@ -188,6 +191,40 @@ public class WorkScheduler : IWorkScheduler
             }
             throw;
         }
+    }
+
+    private object? ResolveWorkerInstance(Worker worker, MethodInfo method)
+    {
+        if (method.IsStatic)
+        {
+            return null;
+        }
+
+        if (worker.Instance != null)
+        {
+            return worker.Instance;
+        }
+
+        var declaringType = method.DeclaringType
+            ?? throw new InvalidOperationException($"Unable to resolve declaring type for worker {worker.Namespace}:{worker.Name}");
+
+        var instance = _serviceProvider?.GetService(declaringType);
+        if (instance == null)
+        {
+            try
+            {
+                instance = Activator.CreateInstance(declaringType);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException(
+                    $"Unable to create worker instance for {declaringType.FullName}. Register it in ASP.NET Core DI container or provide an instance.",
+                    ex);
+            }
+        }
+
+        worker.Instance = instance;
+        return instance;
     }
 
     /// <summary>

@@ -126,6 +126,53 @@ await client.RegisterWorkersAsync("Unmeshed.Sdk.Workers.Examples");
     }
 ```
 
+### Use Dependency Injection in Attribute Workers (ASP.NET Core)
+
+If your worker class uses constructor injection, configure the SDK with your app's `IServiceProvider` before scanning workers.
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Unmeshed.Sdk;
+using Unmeshed.Sdk.Configuration;
+using Unmeshed.Sdk.Workers;
+
+var services = new ServiceCollection();
+services.AddSingleton<IMyService, MyService>();
+services.AddTransient<MyDiWorker>();
+var serviceProvider = services.BuildServiceProvider();
+
+WorkerScanner.ConfigureServiceProvider(serviceProvider);
+
+var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+var client = new UnmeshedClient(config, loggerFactory);
+
+await client.RegisterWorkersAsync("YourApp.Workers");
+```
+
+```csharp
+public class MyDiWorker
+{
+    private readonly IMyService _service;
+
+    public MyDiWorker(IMyService service)
+    {
+        _service = service;
+    }
+
+    [WorkerFunction(Name = "di_worker", Namespace = "default")]
+    public Dictionary<string, object> Run(Dictionary<string, object> input)
+    {
+        return new Dictionary<string, object>
+        {
+            ["message"] = _service.GetMessage()
+        };
+    }
+}
+```
+
+If no service provider is configured, workers with parameterless constructors continue to work as before.
+
 ### Register Multiple worker in one go using WorkStepNames attribute
 
 ```csharp

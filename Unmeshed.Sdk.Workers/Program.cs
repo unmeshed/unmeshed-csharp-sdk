@@ -1,7 +1,9 @@
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 using Unmeshed.Sdk;
 using Unmeshed.Sdk.Configuration;
 using System.Runtime.InteropServices;
+using Unmeshed.Sdk.Workers.Examples;
 
 namespace Unmeshed.Sdk.Workers;
 
@@ -32,6 +34,13 @@ class Program
 
             logger.LogInformation("Connecting to Unmeshed engine at {Url}", config.ServerUrl);
             logger.LogInformation("Client ID: {ClientId}", config.ClientId);
+
+            // Create DI container for worker dependencies
+            var services = new ServiceCollection();
+            services.AddSingleton<IGreetingProvider, GreetingProvider>();
+            services.AddTransient<DiWorker>();
+            var serviceProvider = services.BuildServiceProvider();
+            WorkerScanner.ConfigureServiceProvider(serviceProvider);
 
             // Create the Unmeshed client
             using var client = new UnmeshedClient(config, loggerFactory);
