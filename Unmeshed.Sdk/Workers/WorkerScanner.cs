@@ -7,6 +7,16 @@ namespace Unmeshed.Sdk.Workers;
 /// </summary>
 public static class WorkerScanner
 {
+    private static IServiceProvider? _serviceProvider;
+
+    /// <summary>
+    /// Configures a service provider used to resolve worker instances.
+    /// </summary>
+    public static void ConfigureServiceProvider(IServiceProvider? serviceProvider)
+    {
+        _serviceProvider = serviceProvider;
+    }
+
     /// <summary>
     /// Finds all workers in the specified namespace.
     /// </summary>
@@ -37,7 +47,19 @@ public static class WorkerScanner
                             // Create instance if method is not static
                             if (!method.IsStatic)
                             {
-                                instance = Activator.CreateInstance(type);
+                                instance = _serviceProvider?.GetService(type);
+                                if (instance == null)
+                                {
+                                    try
+                                    {
+                                        instance = Activator.CreateInstance(type);
+                                    }
+                                    catch
+                                    {
+                                        // Allow deferred resolution in scheduler (for DI-only constructors).
+                                        instance = null;
+                                    }
+                                }
                             }
 
                             foreach (var stepName in attr.WorkStepNames.Distinct())
