@@ -104,14 +104,14 @@ public class RegistrationClient : IRegistrationClient
 
                 if (response.IsSuccessStatusCode)
                 {
-                    var body = await response.Content.ReadAsStringAsync(cancellationToken);
+                    var body = await response.Content.ReadAsStringAsync();
                     retryCount = 0;
                     _logger.LogInformation("Successfully renewed registration for workers");
                     return;
                 }
 
                 // Handle non-success status codes
-                var errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
+                var errorBody = await response.Content.ReadAsStringAsync();
                 if (!string.IsNullOrEmpty(errorBody))
                 {
                     _logger.LogWarning("Did not receive 200! Status: {StatusCode}, Error: {ErrorBody}", 
