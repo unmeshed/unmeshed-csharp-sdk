@@ -66,6 +66,7 @@ public class RegistrationClient : IRegistrationClient
 
     /// <summary>
     /// Renews worker registration with the engine asynchronously.
+    /// Implements retry logic with exponential backoff (1-10 seconds).
     /// </summary>
     public async Task RenewRegistrationAsync(CancellationToken cancellationToken = default)
     {
@@ -75,40 +76,76 @@ public class RegistrationClient : IRegistrationClient
             return;
         }
 
-        try
+        // Convert workers to StepQueueName format (matching Java SDK)
+        var stepQueueNames = _workers.Select(w => new
         {
-            // Convert workers to StepQueueName format (matching Java SDK)
-            var stepQueueNames = _workers.Select(w => new
+            processId = 0,
+            @namespace = w.Namespace,
+            stepType = UnmeshedConstants.StepType.Worker,
+            name = w.Name
+        }).ToList();
+
+        var delay = TimeSpan.FromSeconds(1);
+        var maxDelay = TimeSpan.FromSeconds(10);
+        var retryCount = 0;
+
+        while (true)
+        {
+            try
             {
-                processId = 0,
-                @namespace = w.Namespace,
-                stepType = UnmeshedConstants.StepType.Worker,
-                name = w.Name
-            }).ToList();
+                _logger.LogInformation("Attempting to renew registration. Retry count: {RetryCount}", retryCount);
 
-            _logger.LogInformation("Registering {Count} workers with engine", _workers.Count);
+                var request = new HttpRequestMessage(HttpMethod.Put, "api/clients/register")
+                {
+                    Content = JsonContent.Create(stepQueueNames)
+                };
 
-            // Use PUT request (not POST) to match Java SDK
-            var request = new HttpRequestMessage(HttpMethod.Put, "api/clients/register")
+                var response = await _httpClient.SendAsync(request, cancellationToken);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var body = await response.Content.ReadAsStringAsync();
+                    retryCount = 0;
+                    _logger.LogInformation("Successfully renewed registration for workers");
+                    return;
+                }
+
+                // Handle non-success status codes
+                var errorBody = await response.Content.ReadAsStringAsync();
+                if (!string.IsNullOrEmpty(errorBody))
+                {
+                    _logger.LogWarning("Did not receive 200! Status: {StatusCode}, Error: {ErrorBody}", 
+                        response.StatusCode, errorBody);
+                }
+                else
+                {
+                    _logger.LogWarning("Did not receive 200! Status: {StatusCode}", response.StatusCode);
+                }
+
+                retryCount++;
+                _logger.LogInformation("Retry {RetryCount} failed: HTTPError:status code {StatusCode}", 
+                    retryCount, response.StatusCode);
+            }
+            catch (Exception ex)
             {
-                Content = JsonContent.Create(stepQueueNames)
-            };
+                retryCount++;
+                _logger.LogInformation("Retry {RetryCount} failed: {ExceptionType}:{ExceptionMessage}", 
+                    retryCount, ex.GetType().Name, ex.Message);
+            }
 
-            var response = await _httpClient.SendAsync(request, cancellationToken);
+            _logger.LogInformation("Waiting for {DelaySeconds} seconds before retrying...", 
+                (int)delay.TotalSeconds);
+            await Task.Delay(delay, cancellationToken);
 
-            response.EnsureSuccessStatusCode();
-
-            _logger.LogInformation("Successfully registered workers");
-        }
-        catch (HttpRequestException ex)
-        {
-            _logger.LogError(ex, "Failed to register workers");
-            throw;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Unexpected error during worker registration");
-            throw;
+            // Increment delay, capping at maxDelay
+            if (delay < maxDelay)
+            {
+                delay = delay.Add(TimeSpan.FromSeconds(2));
+                if (delay > maxDelay)
+                {
+                    delay = maxDelay;
+                }
+            }
         }
     }
 }
