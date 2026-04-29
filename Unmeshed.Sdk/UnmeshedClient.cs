@@ -498,6 +498,7 @@ public class UnmeshedClient : IDisposable
         var lastLogTime = DateTimeOffset.UtcNow;
         var executingCount = 0;
         var pollingErrorReported = false;
+        var pollingRetryCount = 0;
 
         while (!cancellationToken.IsCancellationRequested)
         {
@@ -554,6 +555,7 @@ public class UnmeshedClient : IDisposable
                 }
 
                 // Release unused permits
+                pollingRetryCount = 0;
                 foreach (var pollSize in pollSizes)
                 {
                     var workerId = FormattedWorkerId(
@@ -633,8 +635,11 @@ public class UnmeshedClient : IDisposable
                     _logger.LogDebug("Polling error continues: {Message}", ex.Message);
                 }
 
-                // Back off on error
-                await Task.Delay(1000, cancellationToken);
+                pollingRetryCount++;
+                var delay = CalculateExponentialBackoffDelay(pollingRetryCount);
+                _logger.LogInformation("Polling failed. Retry count: {RetryCount}, waiting {DelayMs}ms before retry", 
+                    pollingRetryCount, delay.TotalMilliseconds);
+                await Task.Delay(delay, cancellationToken);
             }
         }
     }
@@ -746,6 +751,30 @@ public class UnmeshedClient : IDisposable
     #endregion
 
     #region Helper Methods
+
+    /// <summary>
+    /// Calculates exponential backoff delay with jitter, similar to Java GenericBackoffScheduler.
+    /// Formula: min(30000, 50 * 2^retryCount) + jitter (if retrying)
+    /// </summary>
+    private static TimeSpan CalculateExponentialBackoffDelay(int retryCount)
+    {
+        const long initialDelayMillis = 50;
+        const int backoffMultiplier = 2;
+        const int maxDelayMillis = 30000;
+        const int jitterUpperBoundMillis = 2000;
+
+        // Calculate exponential backoff: initialDelay * multiplier^retryCount
+        var backoff = Math.Min(maxDelayMillis, 
+            (long)(initialDelayMillis * Math.Pow(backoffMultiplier, retryCount - 1)));
+
+        // Add jitter on retries
+        if (retryCount > 1)
+        {
+            backoff += new Random().Next(jitterUpperBoundMillis);
+        }
+
+        return TimeSpan.FromMilliseconds(backoff);
+    }
 
     private static string FormattedWorkerId(string @namespace, string name)
     {
