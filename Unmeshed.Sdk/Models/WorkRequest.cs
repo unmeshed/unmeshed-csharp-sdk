@@ -20,6 +20,10 @@ public class WorkRequest
     [JsonPropertyName("stepExecutionId")]
     public long StepExecutionId { get; set; }
 
+    /// <summary>The shard instance ID for this work request, when sharded.</summary>
+    [JsonPropertyName("shardInstanceId")]
+    public int? ShardInstanceId { get; set; }
+
     /// <summary>The number of times this step has been run.</summary>
     [JsonPropertyName("runCount")]
     public int RunCount { get; set; }
