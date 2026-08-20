@@ -26,6 +26,9 @@ public interface ISubmitClient
 /// </summary>
 public class SubmitClient : ISubmitClient
 {
+    private const string ClientsResultsUrl = "api/clients/bulkResults";
+    private const string ShardIdHeader = "X-SHARD-ID";
+
     private readonly HttpClient _httpClient;
     private readonly ClientConfig _config;
     private readonly ILogger<SubmitClient> _logger;
@@ -150,18 +153,36 @@ public class SubmitClient : ISubmitClient
     {
         _logger.LogDebug("Processing batch of {Count} work responses", batch.Count);
 
+        var trackersByShard = batch
+            .GroupBy(t => t.Response.ShardInstanceId)
+            .ToList();
+
+        foreach (var shardBatch in trackersByShard)
+        {
+            await ProcessShardBatchAsync(shardBatch.ToList(), shardBatch.Key, cancellationToken);
+        }
+    }
+
+    /// <summary>
+    /// Processes a shard-specific batch of work responses.
+    /// </summary>
+    private async Task ProcessShardBatchAsync(
+        List<WorkResponseTracker> batch,
+        int? shardInstanceId,
+        CancellationToken cancellationToken)
+    {
         var responses = batch.Select(t => t.Response).ToList();
 
         try
         {
-            var httpResponse = await _httpClient.PostAsJsonAsync(
-                "api/clients/bulkResults",
-                responses,
-                cancellationToken);
+            using var httpResponse = await SendBatchAsync(responses, shardInstanceId, cancellationToken);
 
             if (httpResponse.IsSuccessStatusCode)
             {
-                _logger.LogDebug("Successfully submitted batch of {Count} responses", batch.Count);
+                _logger.LogDebug(
+                    "Successfully submitted batch of {Count} responses for shard {ShardInstanceId}",
+                    batch.Count,
+                    shardInstanceId);
 
                 // Release semaphores for successful submissions
                 foreach (var tracker in batch)
@@ -173,7 +194,8 @@ public class SubmitClient : ISubmitClient
             {
                 var errorContent = await httpResponse.Content.ReadAsStringAsync();
                 _logger.LogWarning(
-                    "Failed to submit batch. Status: {StatusCode}, Error: {Error}",
+                    "Failed to submit batch for shard {ShardInstanceId}. Status: {StatusCode}, Error: {Error}",
+                    shardInstanceId,
                     httpResponse.StatusCode,
                     errorContent);
 
@@ -187,14 +209,36 @@ public class SubmitClient : ISubmitClient
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "HTTP error while submitting batch");
+            _logger.LogError(ex, "HTTP error while submitting batch for shard {ShardInstanceId}", shardInstanceId);
             await HandleFailedBatchAsync(batch, false, cancellationToken);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while submitting batch");
+            _logger.LogError(ex, "Unexpected error while submitting batch for shard {ShardInstanceId}", shardInstanceId);
             await HandleFailedBatchAsync(batch, false, cancellationToken);
         }
+    }
+
+    private async Task<HttpResponseMessage> SendBatchAsync(
+        List<WorkResponse> responses,
+        int? shardInstanceId,
+        CancellationToken cancellationToken)
+    {
+        if (shardInstanceId == null)
+        {
+            return await _httpClient.PostAsJsonAsync(
+                ClientsResultsUrl,
+                responses,
+                cancellationToken);
+        }
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, ClientsResultsUrl)
+        {
+            Content = JsonContent.Create(responses)
+        };
+        request.Headers.Add(ShardIdHeader, $"shard-{shardInstanceId}");
+
+        return await _httpClient.SendAsync(request, cancellationToken);
     }
 
     /// <summary>
